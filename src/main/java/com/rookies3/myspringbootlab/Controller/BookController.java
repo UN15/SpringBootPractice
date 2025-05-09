@@ -56,7 +56,8 @@ public class BookController {
     @PostMapping
     public ResponseEntity<Book> createBook(@RequestBody Book book){
         Book newBook = bookRepository.save(book);
-        return ResponseEntity.ok(newBook);
+//        return ResponseEntity.ok(newBook);
+        return new ResponseEntity<>(newBook, HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}")
@@ -74,4 +75,13 @@ public class BookController {
         bookRepository.delete(existBook);
         return ResponseEntity.noContent().build();
     }
+//
+//    @DeleteMapping("/{id}")
+//    public ResponseEntity<Void> deleteBook(@PathVariable Long id) {
+//        if (!bookRepository.existsById(id)) {
+//            return ResponseEntity.notFound().build();
+//        }
+//        bookRepository.deleteById(id);
+//        return ResponseEntity.noContent().build();
+//    }
 }

@@ -43,6 +43,7 @@ public class BookRepositoryTest {
 
         Book addbook = bookRepository.save(book);
         Book addbook2 = bookRepository.save(book2);
+//        bookRepository.saveAll(List.of(book, book2)); 한번에 saveAll할 수 있음
         assertThat(addbook).isNotNull();
         assertThat(addbook2).isNotNull();
         assertThat(addbook.getTitle()).isEqualTo("스프링 부트 입문");
