@@ -1,6 +1,7 @@
 package com.rookies3.myspringbootlab.exception.advice;
 
 import com.rookies3.myspringbootlab.exception.BusinessException;
+import com.rookies3.myspringbootlab.exception.advice.ErrorObject;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
@@ -49,6 +50,8 @@ public class DefaultExceptionAdvice {
     //숫자타입의 값에 문자열타입의 값을 입력으로 받았을때 발생하는 오류
     @ExceptionHandler(HttpMessageNotReadableException.class)
     protected ResponseEntity<Object> handleException(HttpMessageNotReadableException e) {
+        log.error(e.getMessage(), e);
+
         Map<String, Object> result = new HashMap<String, Object>();
         result.put("message", e.getMessage());
         result.put("httpStatus", HttpStatus.BAD_REQUEST.value());
@@ -73,7 +76,6 @@ public class DefaultExceptionAdvice {
             MethodArgumentNotValidException ex) {
 
         log.error(ex.getMessage(), ex);
-
         Map<String, String> errors = new HashMap<>();
         ex.getBindingResult()
                 .getAllErrors()
@@ -85,11 +87,11 @@ public class DefaultExceptionAdvice {
 
         ValidationErrorResponse response =
                 new ValidationErrorResponse(
-                400,
-                "입력항목 검증 오류",
-                LocalDateTime.now(),
-                errors
-        );
+                        400,
+                        "입력항목 검증 오류",
+                        LocalDateTime.now(),
+                        errors
+                );
         //badRequest() 400
         return ResponseEntity.badRequest().body(response);
     }
