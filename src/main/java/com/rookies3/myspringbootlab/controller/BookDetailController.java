@@ -11,8 +11,8 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/books")
-public class BookController {
+@RequestMapping("/api/books/detail")
+public class BookDetailController {
     private final BookService bookService;
 
     @GetMapping
@@ -49,14 +49,14 @@ public class BookController {
 
     @PostMapping
     public ResponseEntity<BookDTO.Response> createBook(@Valid @RequestBody
-                                                       BookDTO.Request request){
+                                                                BookDTO.Request request){
         BookDTO.Response book  = bookService.createBook(request);
         return ResponseEntity.ok(book);
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<BookDTO.Response> updateBook(@PathVariable Long id, @Valid @RequestBody
-    BookDTO.Request request){
+                                            BookDTO.Request request){
         BookDTO.Response updatedBook = bookService.updateBook(id, request);
         return ResponseEntity.ok(updatedBook);
     }
@@ -66,4 +66,5 @@ public class BookController {
         bookService.deleteBook(id);
         return ResponseEntity.noContent().build();
     }
+
 }

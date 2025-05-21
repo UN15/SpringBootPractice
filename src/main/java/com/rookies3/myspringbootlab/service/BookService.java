@@ -3,10 +3,12 @@ package com.rookies3.myspringbootlab.service;
 import com.rookies3.myspringbootlab.controller.dto.BookDTO;
 import com.rookies3.myspringbootlab.entity.Book;
 import com.rookies3.myspringbootlab.entity.BookDetail;
+import com.rookies3.myspringbootlab.entity.Publisher;
 import com.rookies3.myspringbootlab.exception.BusinessException;
 import com.rookies3.myspringbootlab.exception.ErrorCode;
 import com.rookies3.myspringbootlab.repository.BookDetailRepository;
 import com.rookies3.myspringbootlab.repository.BookRepository;
+import com.rookies3.myspringbootlab.repository.PublisherRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,6 +21,7 @@ import java.util.List;
 public class BookService {
     private final BookRepository bookRepository;
     private final BookDetailRepository bookDetailRepository;
+    private final PublisherRepository publisherRepository;
 
     public List<BookDTO.Response> getAllBooks() {
         return bookRepository.findAll()
@@ -43,8 +46,8 @@ public class BookService {
 
     public List<BookDTO.Response> getBooksByAuthor(String author) {
         List<Book> bookList = bookRepository.findByAuthorContainingIgnoreCase(author);
-        if(bookList.isEmpty())
-            throw new BusinessException(ErrorCode.RESOURCE_NOT_FOUND, "Book", "author", author);
+//        if(bookList.isEmpty())
+//            throw new BusinessException(ErrorCode.RESOURCE_NOT_FOUND, "Book", "author", author);
 
         return bookList.stream()
                 .map(BookDTO.Response::fromEntity)
@@ -53,10 +56,21 @@ public class BookService {
 
     public List<BookDTO.Response> getBooksByTitle(String title) {
         List<Book> bookList = bookRepository.findByTitleContainingIgnoreCase(title);
-        if(bookList.isEmpty())
-            throw new BusinessException(ErrorCode.RESOURCE_NOT_FOUND, "Book", "title", title);
+//        if(bookList.isEmpty())
+//            throw new BusinessException(ErrorCode.RESOURCE_NOT_FOUND, "Book", "title", title);
 
         return bookList.stream()
+                .map(BookDTO.Response::fromEntity)
+                .toList();
+    }
+    public List<BookDTO.Response> getBooksByPublisherId(Long publisherId) {
+        if (!publisherRepository.existsById(publisherId)) {
+            throw new BusinessException(ErrorCode.RESOURCE_NOT_FOUND,
+                    "Publisher", "id", publisherId);
+        }
+
+        return bookRepository.findByPublisherId(publisherId)
+                .stream()
                 .map(BookDTO.Response::fromEntity)
                 .toList();
     }
@@ -64,6 +78,10 @@ public class BookService {
     @Transactional
     public BookDTO.Response createBook(BookDTO.Request request) {
         // Validate book isbn is not already in use
+        Publisher publisher = publisherRepository.findById(request.getPublisherId())
+                .orElseThrow(() -> new BusinessException(ErrorCode.RESOURCE_NOT_FOUND,
+                        "Publisher", "id", request.getPublisherId()));
+
         if (bookRepository.existsByIsbn(request.getIsbn())) {
             throw new BusinessException(ErrorCode.ISBN_DUPLICATE,
                     request.getIsbn());
@@ -75,6 +93,7 @@ public class BookService {
                 .isbn(request.getIsbn())
                 .price(request.getPrice())
                 .publishDate(request.getPublishDate())
+                .publisher(publisher)
                 .build();
 
         if (request.getDetailRequest() != null) {
@@ -101,6 +120,10 @@ public class BookService {
                 .orElseThrow(() -> new BusinessException(ErrorCode.RESOURCE_NOT_FOUND,
                         "Book", "id", id));
 
+        Publisher publisher = publisherRepository.findById(request.getPublisherId())
+                .orElseThrow(() -> new BusinessException(ErrorCode.RESOURCE_NOT_FOUND,
+                        "Publisher", "id", request.getPublisherId()));
+
         if (!book.getIsbn().equals(request.getIsbn()) &&
                 bookRepository.existsByIsbn(request.getIsbn())) {
             throw new BusinessException(ErrorCode.ISBN_DUPLICATE,
@@ -112,6 +135,7 @@ public class BookService {
         book.setIsbn(request.getIsbn());
         book.setPrice(request.getPrice());
         book.setPublishDate(request.getPublishDate());
+        book.setPublisher(publisher);
 
         if (request.getDetailRequest() != null) {
             BookDetail bookDetail = book.getBookDetail();
